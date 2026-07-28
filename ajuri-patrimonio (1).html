@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJURI Patrimônio · Cartilha Interativa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#0B3D6B;
+    --blue-deep:#082A4D;
+    --blue-soft:#E7EEF6;
+    --green:#0E9A5C;
+    --green-soft:#E4F5EC;
+    --yellow:#F2C230;
+    --yellow-soft:#FCF3D9;
+    --ink:#141B24;
+    --ink-soft:#4A5563;
+    --ink-faint:#8994A1;
+    --paper:#F3F5F7;
+    --paper-alt:#FFFFFF;
+    --line:#DEE4EA;
+    --radius:14px;
+    --shadow: 0 8px 24px -12px rgba(11,61,107,.18);
+    --sidebar-w: 296px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html, body{max-width:100%; overflow-x:hidden;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-text-size-adjust:100%;
+  }
+  img, svg{max-width:100%;}
+  h1,h2,h3,h4{
+    font-family:'Space Grotesk',sans-serif;
+    color:var(--blue-deep);
+    margin:0 0 .4em;
+    letter-spacing:-.01em;
+  }
+  a{color:var(--blue);}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Scroll progress ---------- */
+  #progress{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg,var(--green),var(--yellow),var(--blue));
+    z-index:999; transition:width .1s linear;
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    min-height:100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    background:var(--blue-deep);
+    color:#DCE7F2;
+    padding:28px 20px 24px;
+    border-right:1px solid rgba(255,255,255,.06);
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:22px;
+  }
+  .brand-mark{
+    width:42px;height:42px;border-radius:10px;
+    background:linear-gradient(135deg,var(--green),var(--blue));
+    position:relative; flex:none;
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%);
+  }
+  .brand-text .kicker{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--yellow); opacity:.9;
+  }
+  .brand-text h1{
+    color:#fff; font-size:19px; margin:2px 0 0; line-height:1.15;
+  }
+  .search-box{
+    margin:6px 0 18px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%; padding:10px 12px 10px 34px;
+    border-radius:10px; border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06); color:#fff; font-size:16px;
+    font-family:'Inter',sans-serif;
+  }
+  .search-box input::placeholder{color:#93A6BC;}
+  .search-box svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:.6;}
+
+  nav.toc{display:flex; flex-direction:column; gap:2px;}
+  nav.toc a{
+    display:flex; align-items:center; gap:11px;
+    text-decoration:none; color:#C3D3E4;
+    padding:9px 10px; border-radius:9px;
+    font-size:14px; font-weight:500;
+    transition:background .15s, color .15s;
+  }
+  nav.toc a:hover{background:rgba(255,255,255,.06); color:#fff;}
+  nav.toc a.active{
+    background:rgba(255,255,255,.12); color:#fff;
+  }
+  nav.toc a .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    width:26px;height:26px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    flex:none; font-weight:600;
+    background:rgba(255,255,255,.1); color:#fff;
+  }
+  nav.toc a.active .tag{background:var(--yellow); color:var(--blue-deep);}
+  .tag.c-blue{background:rgba(20,110,200,.35);}
+  .tag.c-green{background:rgba(14,154,92,.35);}
+  .tag.c-yellow{background:rgba(242,194,48,.3);}
+
+  .sidebar-foot{
+    margin-top:26px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08);
+    font-size:12px; color:#8FA3B9; line-height:1.6;
+  }
+  .sidebar-foot a{color:#BFD4E8;}
+
+  .menu-toggle{
+    display:none; position:fixed; top:14px; left:14px; z-index:1000;
+    width:42px;height:42px;border-radius:10px; border:none;
+    background:var(--blue-deep); color:#fff; align-items:center; justify-content:center;
+    box-shadow:var(--shadow);
+  }
+  .sidebar-overlay{
+    display:none; position:fixed; inset:0; background:rgba(8,20,35,.5);
+    z-index:850; opacity:0; transition:opacity .2s;
+  }
+  .sidebar-overlay.show{display:block; opacity:1;}
+
+  /* ---------- Main ---------- */
+  main{padding: 0 0 80px;}
+  .hero{
+    background:
+      radial-gradient(1100px 420px at 85% -10%, rgba(14,154,92,.20), transparent 60%),
+      radial-gradient(900px 380px at 10% -20%, rgba(242,194,48,.18), transparent 55%),
+      linear-gradient(180deg,var(--blue-deep), var(--blue) 120%);
+    color:#fff;
+    padding:64px 56px 58px;
+    position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; right:-60px; bottom:-70px; width:260px; height:260px;
+    background:var(--green); opacity:.35;
+    clip-path: polygon(0 100%, 100% 100%, 100% 0);
+  }
+  .hero::before{
+    content:""; position:absolute; right:120px; top:-40px; width:140px; height:140px;
+    background:var(--yellow); opacity:.9;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.16em;
+    font-size:12px; color:var(--yellow); margin-bottom:14px; display:inline-block;
+  }
+  .hero h1{
+    color:#fff; font-size:clamp(32px,4.4vw,54px); max-width:760px; margin-bottom:14px;
+  }
+  .hero p.lead{
+    max-width:640px; color:#D9E6F2; font-size:17px; position:relative; z-index:2;
+  }
+  .hero-meta{
+    display:flex; gap:26px; flex-wrap:wrap; margin-top:30px; position:relative; z-index:2;
+  }
+  .hero-meta div{font-size:13px; color:#AFC5DA;}
+  .hero-meta strong{display:block; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:15px;}
+
+  .content-wrap{padding:0 56px;}
+
+  section.chapter{
+    padding:56px 0 12px;
+    border-bottom:1px solid var(--line);
+    scroll-margin-top: 20px;
+  }
+  section.chapter:last-of-type{border-bottom:none;}
+
+  .chapter-head{
+    display:grid; grid-template-columns: 84px 1fr; gap:22px; align-items:start;
+    margin-bottom:30px;
+  }
+  .chapter-num{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;
+    width:64px;height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    color:#fff;
+  }
+  .chapter-head h2{font-size:clamp(24px,3vw,32px); margin-bottom:6px;}
+  .chapter-sub{color:var(--ink-soft); font-size:15px; max-width:70ch;}
+
+  .c-bg-blue{background:var(--blue);}
+  .c-bg-green{background:var(--green);}
+  .c-bg-yellow{background:var(--yellow); color:var(--blue-deep);}
+
+  .panel{
+    background:var(--paper-alt); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; margin:0 0 22px;
+    box-shadow: var(--shadow);
+  }
+  .panel h3{font-size:16px; margin-bottom:10px;}
+  .panel h4{font-size:14.5px; margin:0 0 6px; color:var(--ink);}
+  .panel p{margin:0 0 10px; color:var(--ink-soft);}
+  .panel ul{margin:0; padding-left:20px; color:var(--ink-soft);}
+  .panel li{margin-bottom:6px;}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width: 880px){.grid-2{grid-template-columns:1fr;}}
+
+  /* callouts */
+  .callout{
+    border-radius:10px; padding:14px 16px; margin:16px 0; font-size:14.5px;
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .callout .icon{flex:none; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px;
+    width:26px;height:26px;border-radius:50%; display:flex; align-items:center;justify-content:center; color:#fff;}
+  .callout.importante{background:var(--yellow-soft); border:1px solid #ecd58a;}
+  .callout.importante .icon{background:var(--yellow); color:var(--blue-deep);}
+  .callout.atencao{background:#FDEAE3; border:1px solid #f2c3ae;}
+  .callout.atencao .icon{background:#D9542D;}
+  .callout strong{display:block; font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:.04em; text-transform:uppercase; margin-bottom:2px;}
+
+  /* step trail (signature element) */
+  .steps{position:relative; margin:18px 0 6px; padding-left:4px;}
+  .step{
+    display:grid; grid-template-columns:40px 1fr; gap:16px; position:relative; padding-bottom:26px;
+  }
+  .step:last-child{padding-bottom:2px;}
+  .step::before{
+    content:""; position:absolute; left:19px; top:40px; bottom:0; width:2px;
+    background-image:linear-gradient(var(--line) 60%, transparent 0%);
+    background-size: 2px 8px; background-repeat: repeat-y;
+  }
+  .step:last-child::before{display:none;}
+  .step-num{
+    width:40px; height:40px; border-radius:50%; color:#fff; font-family:'IBM Plex Mono',monospace;
+    display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px;
+    z-index:2;
+  }
+  .step-body h4{margin-bottom:5px; font-size:15px;}
+  .step-body p{margin:0 0 6px; color:var(--ink-soft); font-size:14.5px;}
+  .step-body ul{margin:6px 0 0; padding-left:18px; color:var(--ink-soft); font-size:14.5px;}
+  .step-body li{margin-bottom:4px;}
+  .step-body code, .step-body .field{
+    font-family:'IBM Plex Mono',monospace; background:var(--paper); border:1px solid var(--line);
+    padding:1px 6px; border-radius:5px; font-size:13px; color:var(--blue-deep);
+  }
+
+  /* accordions (details) for Desfazimento subtopics */
+  details.acc{
+    background:var(--paper-alt); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:14px; overflow:hidden;
+  }
+  details.acc summary{
+    list-style:none; cursor:pointer; padding:16px 20px; display:flex; align-items:center; gap:12px;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; color:var(--blue-deep);
+  }
+  details.acc summary::-webkit-details-marker{display:none;}
+  details.acc summary::before{
+    content:"›"; font-size:20px; color:var(--green); transform:rotate(0deg); transition:transform .18s;
+    font-weight:700;
+  }
+  details.acc[open] summary::before{transform:rotate(90deg);}
+  details.acc .acc-body{padding:2px 22px 22px;}
+  .badge{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; padding:2px 8px; border-radius:999px;
+    background:var(--blue-soft); color:var(--blue); margin-left:auto; white-space:nowrap;
+  }
+
+  table.ref{
+    width:100%; border-collapse:collapse; font-size:14px; margin:8px 0 4px;
+  }
+  table.ref th, table.ref td{
+    text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+  }
+  table.ref th{color:var(--ink-faint); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.04em;}
+
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 4px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:5px 11px; border-radius:999px;
+    border:1px solid var(--line); color:var(--ink-soft); background:var(--paper);
+  }
+
+  footer.site{
+    background:var(--blue-deep); color:#B9CCE0; padding:44px 56px; margin-top:20px;
+    display:flex; flex-wrap:wrap; gap:40px; justify-content:space-between;
+  }
+  footer.site h4{color:#fff; font-size:15px; margin-bottom:10px;}
+  footer.site a{color:#DCE7F2;}
+  footer.site .col{max-width:340px; font-size:13.5px; line-height:1.7;}
+
+  .back-top{
+    position:fixed; right:26px; bottom:26px; width:46px;height:46px;border-radius:50%;
+    background:var(--green); color:#fff; border:none; box-shadow:var(--shadow);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; pointer-events:none;
+    transition:opacity .2s, transform .2s;
+  }
+  .back-top.show{opacity:1; pointer-events:auto;}
+  .back-top:hover{transform:translateY(-3px);}
+
+  @media (max-width: 980px){
+    .shell{grid-template-columns: 1fr; display:block;}
+    .sidebar{
+      position:fixed; left:0; top:0; width:min(84vw,300px); z-index:900;
+      transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.35);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .menu-toggle{display:flex;}
+    .hero, .content-wrap{padding-left:22px; padding-right:22px;}
+    .hero{padding-top:88px;}
+    .chapter-head{grid-template-columns:56px 1fr;}
+    .chapter-num{width:48px;height:48px;font-size:13px;border-radius:12px;}
+  }
+
+  @media (max-width: 640px){
+    .hero{padding:78px 18px 40px;}
+    .hero p.lead{font-size:15.5px;}
+    .hero-meta{gap:16px 26px; margin-top:22px;}
+    .hero::after{width:170px; height:170px; right:-50px; bottom:-50px;}
+    .hero::before{width:90px; height:90px; right:26px;}
+
+    .hero, .content-wrap{padding-left:16px; padding-right:16px;}
+    section.chapter{padding:38px 0 8px;}
+
+    .chapter-head{grid-template-columns:44px 1fr; gap:14px; margin-bottom:22px;}
+    .chapter-num{width:40px;height:40px;font-size:12px;border-radius:10px;}
+
+    .panel{padding:18px 16px;}
+    .steps{padding-left:0;}
+    .step{grid-template-columns:32px 1fr; gap:12px; padding-bottom:20px;}
+    .step-num{width:32px; height:32px; font-size:12.5px;}
+    .step::before{left:15px; top:32px;}
+
+    details.acc summary{padding:14px 16px; font-size:14.5px; gap:8px; flex-wrap:wrap;}
+    details.acc .acc-body{padding:2px 16px 18px;}
+    .badge{margin-left:0; order:3; flex-basis:100%;}
+
+    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:8px -2px 4px; border-radius:10px;}
+    table.ref{min-width:420px;}
+
+    footer.site{padding:32px 18px; gap:26px;}
+    footer.site .col{max-width:100%;}
+
+    .back-top{right:16px; bottom:16px; width:42px; height:42px;}
+  }
+
+  @media (max-width: 400px){
+    .brand-text h1{font-size:17px;}
+    .hero h1{font-size:26px;}
+    .eyebrow{font-size:11px;}
+    .chapter-head{grid-template-columns:36px 1fr; gap:10px;}
+    .chapter-num{width:36px;height:36px;font-size:11px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">
+        <span class="kicker">Cartilha · 1ª edição</span>
+        <h1>AJURI Patrimônio</h1>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="filterInput" type="text" placeholder="Filtrar capítulos…">
+    </div>
+
+    <nav class="toc" id="tocNav">
+      <a href="#introducao"><span class="tag c-blue">00</span>Introdução</a>
+      <a href="#recepcao"><span class="tag c-green">01</span>Recepção de NE/NF</a>
+      <a href="#entrada"><span class="tag c-yellow">02</span>Entrada no almoxarifado</a>
+      <a href="#tombamento"><span class="tag c-blue">03</span>Tombamento</a>
+      <a href="#transferencia"><span class="tag c-green">04</span>Transferência interna</a>
+      <a href="#desfazimento"><span class="tag c-yellow">05</span>Desfazimento</a>
+      <a href="#depreciacao"><span class="tag c-blue">06</span>Depreciação</a>
+      <a href="#inventario"><span class="tag c-green">07</span>Inventário</a>
+      <a href="#virada"><span class="tag c-yellow">08</span>Virada de ano</a>
+    </nav>
+
+    <div class="sidebar-foot">
+      Governo do Estado do Amazonas<br>
+      Secretaria de Administração e Gestão — SEAD<br>
+      <a href="mailto:dbm.patrimonio@sead.am.gov.br">dbm.patrimonio@sead.am.gov.br</a>
+    </div>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <span class="eyebrow">Sistema Eletrônico de Controle Patrimonial</span>
+      <h1>AJURI Patrimônio, passo a passo.</h1>
+      <p class="lead">Guia interativo com os procedimentos oficiais de gestão de bens móveis do Poder Executivo do Amazonas — da recepção da nota fiscal até a virada de ano, na ordem em que acontecem no dia a dia do patrimônio.</p>
+      <div class="hero-meta">
+        <div><strong>Decreto Estadual nº 34.161/2013</strong>institui o sistema AJURI</div>
+        <div><strong>SEAD</strong>órgão central coordenador</div>
+        <div><strong>9 capítulos</strong>da recepção à virada de ano</div>
+      </div>
+    </div>
+
+    <div class="content-wrap">
+
+      <!-- 00 INTRODUÇÃO -->
+      <section class="chapter" id="introducao">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-blue">00</div>
+          <div>
+            <h2>Introdução</h2>
+            <p class="chapter-sub">O que é o AJURI Patrimônio e por que esta cartilha existe.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>O <strong>Sistema Eletrônico de Controle Patrimonial – AJURI PATRIMÔNIO</strong> foi instituído pelo <strong>Decreto Estadual nº 34.161/2013</strong>. É o instrumento obrigatório para a gestão de bens móveis e imóveis dos órgãos do Poder Executivo Estadual, suas autarquias e fundações — nele devem ser registrados todos os atos de aquisição, destinação, uso e alienação patrimonial. A coordenação é da <strong>Secretaria de Administração e Gestão (SEAD)</strong>.</p>
+          <p>Esta cartilha reúne as principais ações do sistema para orientar quem usa o AJURI no dia a dia, reduzindo a necessidade de chamados de suporte.</p>
+          <div class="chip-row">
+            <span class="chip">Base legal completa</span>
+            <span class="chip">sead.am.gov.br/institucional/legislacao/#patrimonio</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 01 RECEPÇÃO -->
+      <section class="chapter" id="recepcao">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-green">01</div>
+          <div>
+            <h2>Recepção da nota de empenho e nota fiscal</h2>
+            <p class="chapter-sub">O ponto de partida: registrar no AJURI a compra formalizada por Nota de Empenho (órgão) e Nota Fiscal (fornecedor).</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>O que é</h3>
+          <p>É o processo que ocorre quando a aquisição é realizada pelo órgão/entidade, havendo a emissão de <strong>Nota de Empenho – NE</strong> (pelo órgão) e <strong>Nota Fiscal – NF</strong> (pelo fornecedor).</p>
+        </div>
+
+        <div class="steps">
+          <div class="step"><div class="step-num c-bg-green">1</div><div class="step-body">
+            <h4>Escolha o perfil Coordenador de Patrimônio</h4>
+            <p>Selecione o servidor, órgão e cliente correspondentes e faça login com esse perfil.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">2</div><div class="step-body">
+            <h4>Abra o módulo Estoque</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">3</div><div class="step-body">
+            <h4>Verifique o Movimento Almoxarifado — Patrimônio</h4>
+            <p>Ele precisa estar ativo (ícone verde). Se não estiver, clique sobre ele para habilitar.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">4</div><div class="step-body">
+            <h4>Acesse Movimentos → Entrada → Recepção</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">5</div><div class="step-body">
+            <h4>Clique no botão “+” no canto superior direito</h4>
+            <p>Abre a tela para adicionar uma nova recepção.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">6</div><div class="step-body">
+            <h4>Digite a chave da Nota Fiscal</h4>
+            <p>Ao informar o <span class="field">nº da Chave</span>, os campos <span class="field">Nº do Doc.</span>, <span class="field">Data</span>, <span class="field">Valor</span> e <span class="field">Fornecedor</span> são preenchidos automaticamente.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">7</div><div class="step-body">
+            <h4>Preencha os campos obrigatórios</h4>
+            <ul>
+              <li><strong>Nº de itens</strong> — refere-se aos itens da NF, não à quantidade total de bens.</li>
+              <li><strong>Ano/Empenho</strong> — no formato <span class="field">2023NE00005</span>.</li>
+              <li><strong>Elemento de Despesa</strong> — sempre <span class="field">52 – Equipamentos e Material Permanente</span>.</li>
+              <li><strong>Almoxarifado</strong> — sempre <span class="field">Patrimônio</span>.</li>
+            </ul>
+            <p>Depois, clique em <strong>Cadastrar</strong>.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">8</div><div class="step-body">
+            <h4>Confira se a Nota Fiscal foi recepcionada</h4>
+            <p>Ela deve aparecer na listagem de recepções não concluídas, pronta para a próxima etapa.</p>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 02 ENTRADA -->
+      <section class="chapter" id="entrada">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-yellow">02</div>
+          <div>
+            <h2>Entrada do material no almoxarifado patrimonial</h2>
+            <p class="chapter-sub">Confirmar fisicamente o recebimento do material já recepcionado.</p>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body">
+            <h4>Abra o módulo Estoque</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body">
+            <h4>Acesse Movimentos → Entrada → Entrada de Materiais</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body">
+            <h4>Clique no ícone de edição (lápis)</h4>
+            <p>Na linha correspondente ao documento recepcionado.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body">
+            <h4>Informe a quantidade de entrada</h4>
+            <p>Digite, em <span class="field">Quantidade Entrada</span>, o número de itens correspondente à descrição do material e confirme clicando no ícone de check no canto superior direito.</p>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 03 TOMBAMENTO -->
+      <section class="chapter" id="tombamento">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-blue">03</div>
+          <div>
+            <h2>Tombamento</h2>
+            <p class="chapter-sub">O registro definitivo do bem permanente no controle patrimonial de uma unidade gestora.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>O tombamento ocorre no momento em que o bem é fisicamente recebido pela instituição, e abrange desde a inserção das informações no AJURI até a assinatura e o arquivamento dos Termos de Responsabilidade. A modalidade de tombamento a escolher depende da documentação disponível sobre o bem — fonte de recursos e origem física.</p>
+        </div>
+
+        <details class="acc" open>
+          <summary>Material já recepcionado no almoxarifado <span class="badge">fluxo principal</span></summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-blue">1</div><div class="step-body"><h4>Selecione o menu Patrimônio</h4></div></div>
+              <div class="step"><div class="step-num c-bg-blue">2</div><div class="step-body"><h4>Acesse Movimentos → Tombar → Material</h4></div></div>
+              <div class="step"><div class="step-num c-bg-blue">3</div><div class="step-body">
+                <h4>Veja a listagem de bens já tombados</h4>
+                <p>O sistema mostra a situação de cada um (transferido, baixado, doado etc). Clique no “+” no canto superior direito para seguir.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-blue">4</div><div class="step-body">
+                <h4>Abra a relação de materiais em pré-tombamento</h4>
+                <p>São os materiais já recepcionados via Nota de Empenho/Nota Fiscal. Clique em Ações para tombar o item desejado.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-blue">5</div><div class="step-body">
+                <h4>Escolha o Nº do Tombo</h4>
+                <p>Segue a sequência utilizada pelo órgão/entidade.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-blue">6</div><div class="step-body">
+                <h4>Complete Estado de Conservação e Modo de Aquisição</h4>
+                <p>As demais informações vêm preenchidas a partir da recepção do estoque. Clique em <strong>Cadastrar</strong> para concluir o tombamento.</p>
+              </div></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Tombamento de veículos <span class="badge">busca automática no Detran</span></summary>
+          <div class="acc-body">
+            <p>Ao digitar o tipo de veículo no campo <span class="field">Material</span>, aparece o campo obrigatório <span class="field">Nº Renavam</span>. Informando o Renavam, o sistema busca automaticamente no banco de dados do Detran as características do veículo. Clique em <strong>Cadastrar</strong> e o veículo está tombado.</p>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Material que não foi recepcionado no almoxarifado <span class="badge">tombamento direto</span></summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-blue">1</div><div class="step-body">
+                <h4>Use quando não houver pré-tombamento</h4>
+                <p>Situação típica de aquisição por doação. Clique no “+” no canto superior direito.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-blue">2</div><div class="step-body">
+                <h4>Escolha o Nº do Tombo</h4>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-blue">3</div><div class="step-body">
+                <h4>Preencha todos os campos com asterisco (*)</h4>
+                <p>São de preenchimento obrigatório. Clique em <strong>Cadastrar</strong> para tombar o material.</p>
+              </div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>Solicite antes à SEAD, por e-mail, a catalogação do material a ser tombado: <a href="mailto:dbm.patrimonio@sead.am.gov.br">dbm.patrimonio@sead.am.gov.br</a></div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- 04 TRANSFERÊNCIA INTERNA -->
+      <section class="chapter" id="transferencia">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-green">04</div>
+          <div>
+            <h2>Transferência interna</h2>
+            <p class="chapter-sub">O controle do movimento do bem dentro do próprio órgão ou entidade.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>Só pode ser feita depois do tombamento do material. É essa transferência que efetivamente coloca o bem em uso — sem ela, o bem não começa a depreciar.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step"><div class="step-num c-bg-green">1</div><div class="step-body">
+            <h4>No módulo Patrimônio, acesse Movimentos → Transferência de Bens → Transferência Interna</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">2</div><div class="step-body">
+            <h4>Veja a listagem de bens já transferidos</h4>
+            <p>Se não houver nenhum, o sistema exibe “Não foram encontrados bens transferidos”. Clique no “+” no canto superior direito para iniciar uma nova transferência.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">3</div><div class="step-body">
+            <h4>Informe o número do tombo a transferir</h4>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-green">4</div><div class="step-body">
+            <h4>Preencha os campos obrigatórios e clique em Transferir</h4>
+            <ul>
+              <li><span class="field">Data Utilização</span> — se não for preenchida, o bem não sofrerá depreciação.</li>
+              <li><span class="field">Destino</span></li>
+              <li><span class="field">Dependência</span></li>
+              <li><span class="field">Motivo Transferência</span></li>
+            </ul>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 05 DESFAZIMENTO -->
+      <section class="chapter" id="desfazimento">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-yellow">05</div>
+          <div>
+            <h2>Desfazimento</h2>
+            <p class="chapter-sub">O que acontece quando um bem deixa de servir à sua unidade — por transferência a outro órgão ou por alienação.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>No AJURI, o desfazimento de bens acontece por duas vias:</p>
+          <div class="grid-2">
+            <div>
+              <h4>Transferência entre órgãos</h4>
+              <p>Movimentação de bens reaproveitáveis entre unidades (órgãos), por interesse das partes.</p>
+            </div>
+            <div>
+              <h4>Alienação</h4>
+              <p>Quando os bens são inservíveis irrecuperáveis, sucateados, sofreram sinistro ou estão extraviados/não localizados.</p>
+            </div>
+          </div>
+        </div>
+
+        <details class="acc" open>
+          <summary>Transferência entre órgãos <span class="badge">Art. 10, Decreto 34.161/2013</span></summary>
+          <div class="acc-body">
+            <p>Ocorre quando o bem inservível é ocioso ou recuperável na unidade de origem, exigindo reclassificação de estado de conservação e disponibilização para outra unidade.</p>
+            <div class="table-wrap">
+            <table class="ref">
+              <tr><th>Unidade</th><th>Papel no processo</th></tr>
+              <tr><td>Destino</td><td>Unidade recebedora do item disponível</td></tr>
+              <tr><td>Origem</td><td>Unidade cedente, detentora do bem</td></tr>
+              <tr><td>Autorizadora</td><td>SEAD — órgão central do sistema de patrimônio</td></tr>
+            </table>
+            </div>
+            <p style="margin-top:14px;"><strong>Como o processo caminha</strong> — simultaneamente via SIGED (ofício) e via AJURI:</p>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>A unidade de destino manifesta interesse à unidade de origem via SIGED.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>A unidade de origem disponibiliza os bens no AJURI para a unidade de destino.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>A SEAD autoriza a transferência entre órgãos, no sistema e no SIGED.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body"><p>A origem encaminha o processo à Contabilidade para dar baixa e o repassa à unidade de destino.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body"><p>A unidade de destino recebe os bens no AJURI e encaminha à Contabilidade para incorporação.</p></div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>Toda informação do tombo (descrição, data de aquisição, documentos) migra da unidade de origem para a de destino — o bem sai da carga de um e entra na do outro.</div>
+            </div>
+
+            <h4 style="margin-top:20px;">Passo a passo no sistema</h4>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Selecione o menu Patrimônio.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Acesse Desfazimento → Transferência entre Órgão → Disponibilizar Tombos para Transferência.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Clique no “+” no canto superior direito.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body">
+                <p>Informe o número do tombo (ou intervalo) e o <strong>Cliente Beneficiário</strong> — a unidade de destino. Clique em <strong>Disponibilizar Tombo para Transferência</strong>.</p>
+              </div></div>
+            </div>
+            <div class="callout atencao">
+              <span class="icon">!</span>
+              <div><strong>Atenção</strong>Confira com cuidado a unidade de destino: se houver equívoco, somente a PRODAM pode cancelar a transferência autorizada. O AJURI não emite relatório dessa etapa — faça print das telas e anexe ao ofício enviado à SEAD via SIGED.</div>
+            </div>
+            <p>Autorizada a transferência, a SEAD emite a <strong>Guia de Recebimento de Bens por Transferência entre Órgãos</strong>, disponível em Desfazimento → Transferência entre Órgãos → Guia de Recolhimento de Bens.</p>
+
+            <h4 style="margin-top:20px;">Como receber a transferência</h4>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Desfazimento → Transferência entre Órgãos → Transferência entre Órgãos – Receber.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body">
+                <p>Informe o cliente cedente e o intervalo de tombos, marque os itens em <strong>Selecionar Todos</strong> conforme a relação solicitada e clique em <strong>Receber Tombos Selecionados</strong>.</p>
+              </div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>Se o mesmo número de tombo já existir na unidade de destino, o sistema o precede com “99” (ex.: tombo 123 vira 990000123). Se a numeração sugerida não servir, a substituição deve ser solicitada por e-mail à SEAD.</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Alienação <span class="badge">Decreto 38.099/2017</span></summary>
+          <div class="acc-body">
+            <p>Alienação é a transferência do direito de propriedade do material, subordinada a interesse público ou social devidamente justificado e a prévia avaliação — pode ocorrer por <strong>venda, permuta ou doação</strong>.</p>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Movimentos → Alienação → Enviar para Alienação.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Informe o tombo/descrição e clique no ícone de ações.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Preencha Documento e Data do Documento — o ofício enviado à SEAD com a relação dos bens — e clique em <strong>Enviar para Alienação</strong>.</p></div></div>
+            </div>
+            <p><strong>Pedido de alienação à SEAD:</strong> ofício com nº do tombo, descrição, valor de aquisição e a relação de bens em processo de alienação. Autorizada, a SEAD libera a baixa no sistema.</p>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Depósito de bens inservíveis do Estado <span class="badge">IN 0001 e 0002/2022 – GS/SEAD</span></summary>
+          <div class="acc-body">
+            <p>Após disponibilizar os bens para transferência entre órgãos, se não houver manifestação de interesse, o órgão solicita a entrega dos remanescentes ao Depósito de Inservíveis do Estado.</p>
+            <table class="ref">
+              <tr><th>Classificação</th><th>Significado</th></tr>
+              <tr><td>Ocioso</td><td>Em perfeitas condições, mas não está sendo aproveitado</td></tr>
+              <tr><td>Recuperável</td><td>Recuperação possível, custando no mínimo 50% do valor de mercado</td></tr>
+              <tr><td>Antieconômico</td><td>Manutenção onerosa ou rendimento precário por desgaste ou obsolescência</td></tr>
+              <tr><td>Irrecuperável</td><td>Não pode mais ser utilizado para seu fim, por perda de características ou inviabilidade econômica</td></tr>
+            </table>
+            <p>A <strong>Comissão de Avaliação e Desfazimento</strong> — no mínimo 3 servidores, com especialista convidado para bens especiais — emite o relatório de classificação previsto no Decreto 38.099/2017.</p>
+
+            <h4 style="margin-top:18px;">Entrega de veículo inservível</h4>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Instituir Comissão de Avaliação e Desfazimento (mín. 3 servidores).</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Gestor da pasta autoriza a entrega e envia ofício à SEAD via SIGED.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Anexar declaração do estado de conservação e grau de inservibilidade da Comissão.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body">
+                <p>Declarar o estado do veículo:</p>
+                <ul>
+                  <li><strong>No estado</strong> — inservível ocioso e/ou recuperável, não pode ser sucateado.</li>
+                  <li><strong>Sucata</strong> — inservível antieconômico e/ou irrecuperável; o chassi deve ser retirado para baixa no Detran.</li>
+                </ul>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body"><p>Acompanhar o veículo do CRLV e do DUT (Documento Único de Transferência).</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">6</div><div class="step-body"><p>Reunir certidões negativas: Detran-AM, Polícia Rodoviária Federal, IMMU, DNIT e Sefaz-AM.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">7</div><div class="step-body">
+                <p>Passar por inspeção: checklist do veículo, descaracterização (sem pintura/equipamentos do Estado), correspondência entre motor/caixa de marcha e chassi, e entrega das chaves.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">8</div><div class="step-body">
+                <p>Agendar a entrega com a Coordenadoria de Patrimônio (CPAT) pelo e-mail <a href="mailto:dbm.patrimonio@sead.am.gov.br">dbm.patrimonio@sead.am.gov.br</a>, cumprindo integralmente o checklist.</p>
+              </div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>A entrega do veículo só é possível com o efetivo registro (tombamento) no AJURI. Toda a parte documental continua sob responsabilidade do órgão até o completo desfazimento, conforme a Lei Federal nº 14.133/2021.</div>
+            </div>
+
+            <h4 style="margin-top:18px;">Entrega de material inservível (bens móveis em geral)</h4>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Registro efetivo no AJURI (tombamento).</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Autorização do gestor da pasta.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Encaminhar a solicitação à SEAD via SIGED, por ofício.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body">
+                <p>Comprovar o registro do tombo com relatório do AJURI, construído em duas etapas: criar a unidade administrativa <strong>Depósito de Inservíveis do Estado</strong> e transferir internamente os bens para ela.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body">
+                <p>Emitir o relatório em Patrimônio → Consultas/Relatórios, com Período, a unidade Depósito de Inservíveis do Estado e opção de listagem “Não Baixados”.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">6</div><div class="step-body"><p>Anexar declaração da Comissão sobre estado de conservação e grau de inservibilidade.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">7</div><div class="step-body"><p>Agendar a entrega com a CPAT pelo e-mail <a href="mailto:dbm.patrimonio@sead.am.gov.br">dbm.patrimonio@sead.am.gov.br</a>.</p></div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>Os bens devem estar identificados (plaquetas/etiquetas de tombo, nome do órgão) para conferência. A carga patrimonial permanece no órgão até o completo desfazimento, conforme a Lei Federal nº 14.133/2021.</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Descarte de bens irrecuperáveis <span class="badge">11 passos</span></summary>
+          <div class="acc-body">
+            <p>Verificada a impossibilidade ou inconveniência de recuperação de material inservível irrecuperável, a autoridade competente determina sua descarga patrimonial, após retirar as partes economicamente aproveitáveis (que são incorporadas ao patrimônio). Base legal ambiental: <strong>Lei Federal nº 12.305/2010</strong> — Política Nacional de Resíduos Sólidos.</p>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Material inservível/irrecuperável</strong>Quando não pode mais ser usado para seu fim, por perda de características ou inviabilidade econômica de recuperação — ex.: encosto de cadeira, tampo de mesa, carcaça de computador, pedaços de material (refugo).</div>
+            </div>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Abertura de processo via SIGED.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Criar Comissão de Avaliação e Desfazimento (mín. 3 servidores; especialista se o material for especial).</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>O Gestor de Patrimônio encaminha os bens inservíveis/irrecuperáveis à Comissão.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body">
+                <p>A Comissão levanta os bens (tombados e não tombados), separa por lotes/grupo de material, solicita laudo de especialista quando necessário, faz registro fotográfico e emite relatório de recomendação de descarte.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body"><p>Encaminhamento para emissão de parecer jurídico.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">6</div><div class="step-body"><p>O jurídico opina sobre a possibilidade do descarte e envia ao Gestor da Pasta.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">7</div><div class="step-body"><p>O Gestor aprova ou reprova, com suas considerações, e devolve à Comissão.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">8</div><div class="step-body"><p>A Comissão aciona o setor administrativo para a logística do descarte, por empresa especializada (CNPJ, estatuto, ata de constituição e demais documentos).</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">9</div><div class="step-body"><p>Finalizada a logística, o ofício segue à SEAD solicitando a baixa, junto com a Relação de Bens Patrimoniais em Processo de Alienação.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">10</div><div class="step-body"><p>A SEAD autoriza a alienação e devolve o processo com a Relação de Bens Patrimoniais Alienados.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">11</div><div class="step-body"><p>O setor de Patrimônio baixa os bens no AJURI e encaminha à Contabilidade para a baixa contábil.</p></div></div>
+            </div>
+            <div class="callout atencao">
+              <span class="icon">!</span>
+              <div><strong>Atenção</strong>Antes da retirada do material pela empresa especializada, o setor de patrimônio deve remover todas as identificações do órgão (plaquetas, etiquetas de tombo, nome do órgão).</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Baixa de bens <span class="badge">registro final</span></summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>Movimentos → Baixa de Bens.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Clique no “+” para ver a relação dos bens já baixados.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Informe o número do tombo a baixar e clique em Baixar.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body"><p>Preencha Nº Documento, Data, Motivo Baixa e Data Baixa, depois clique em Baixar.</p></div></div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- 06 DEPRECIAÇÃO -->
+      <section class="chapter" id="depreciacao">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-blue">06</div>
+          <div>
+            <h2>Depreciação</h2>
+            <p class="chapter-sub">O acompanhamento mensal da perda de valor contábil dos bens em uso.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>O agendamento da depreciação deve ocorrer <strong>mensalmente</strong>. O bem só começa a depreciar após a primeira transferência interna — isto é, a partir do momento em que é colocado à disposição para uso.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step"><div class="step-num c-bg-blue">1</div><div class="step-body">
+            <h4>Agende o cálculo</h4>
+            <p>Movimentos → Correção/Depreciação → Agendar Cálculo de Depreciação.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-blue">2</div><div class="step-body">
+            <h4>Confirme mês, ano e data de execução</h4>
+            <p>Clique em <strong>Agendar Depreciação</strong>.</p>
+          </div></div>
+          <div class="step"><div class="step-num c-bg-blue">3</div><div class="step-body">
+            <h4>Emita o relatório de conferência</h4>
+            <p>Consultas/Relatórios → Depreciação → Demonstrativo de Depreciação.</p>
+          </div></div>
+        </div>
+
+        <div class="callout importante">
+          <span class="icon">i</span>
+          <div><strong>Importante</strong>Analise sempre os saldos da depreciação com os relatórios emitidos, mês a mês.</div>
+        </div>
+      </section>
+
+      <!-- 07 INVENTÁRIO -->
+      <section class="chapter" id="inventario">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-green">07</div>
+          <div>
+            <h2>Inventário</h2>
+            <p class="chapter-sub">A conferência anual entre o que existe fisicamente e o que consta nos registros do AJURI.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p>Segundo a Instrução Normativa nº 006/2018, art. 2º, I, o inventário patrimonial é o instrumento de controle para verificação de ações de levantamento físico e financeiro de bens permanentes em uso, no encerramento de cada exercício. O inventário físico permite ajustar os dados escriturais ao saldo patrimonial de cada unidade gestora: levantamento dos bens em uso, necessidade de manutenção, estado de conservação, disponibilidade e identificação de inservíveis.</p>
+          <div class="callout atencao">
+            <span class="icon">!</span>
+            <div><strong>Atenção</strong>A Comissão de Inventário deve ter número ímpar de integrantes, no mínimo 3 servidores, sendo ao menos um ocupante de cargo de provimento efetivo (IN nº 006/2018-GS/SEAD).</div>
+          </div>
+          <div class="callout importante">
+            <span class="icon">i</span>
+            <div><strong>Importante</strong>As informações coletadas no inventário físico devem ser inseridas no <strong>Inventário por Contagem</strong> do AJURI — que gera o relatório analisado pelo Tribunal de Contas do Estado (TCE).</div>
+          </div>
+        </div>
+
+        <details class="acc" open>
+          <summary>1. Abertura do inventário</summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-green">1</div><div class="step-body"><p>Movimentos → Inventário por Contagem → Abertura de Inventário.</p></div></div>
+              <div class="step"><div class="step-num c-bg-green">2</div><div class="step-body"><p>Clique em <strong>Abrir Inventário</strong>.</p></div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Importante</strong>O ano e o número do inventário são definidos automaticamente pelo sistema e não podem ser alterados. Enquanto houver um inventário em andamento, não é possível abrir outro, nem tombar ou transferir bens.</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>2. Contagem dos tombos</summary>
+          <div class="acc-body">
+            <p>Após a abertura, os tombos precisam ser contados fisicamente, verificando se estão na unidade administrativa e sala esperadas.</p>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-green">1</div><div class="step-body"><p>Acesse Inventário por Contagem → Contagem dos Tombos.</p></div></div>
+              <div class="step"><div class="step-num c-bg-green">2</div><div class="step-body"><p>Veja todas as unidades administrativas com seu status: <strong>Não contado</strong>, <strong>Contado parcial</strong> ou <strong>Contado total</strong> (indicado por tarja branca, amarela ou azul).</p></div></div>
+              <div class="step"><div class="step-num c-bg-green">3</div><div class="step-body"><p>Imprima o Relatório para Contagem, clicando no ícone da impressora — organizado por unidade, dependência e grupo contábil.</p></div></div>
+              <div class="step"><div class="step-num c-bg-green">4</div><div class="step-body">
+                <p>Para cada tombo do relatório, clique na lupa e informe:</p>
+                <ul>
+                  <li><strong>Estado de conservação</strong></li>
+                  <li><strong>Encontrado</strong>, <strong>Não encontrado</strong> ou <strong>Novo</strong> (bem existente na sala mas ausente do relatório)</li>
+                </ul>
+              </div></div>
+            </div>
+            <div class="callout importante">
+              <span class="icon">i</span>
+              <div><strong>Requisitos para cadastrar um tombo Novo</strong>
+              <ul style="margin:6px 0 0; padding-left:18px;">
+                <li>O bem precisa estar tombado no processo normal, para o mesmo cliente do inventário.</li>
+                <li>O bem não pode existir naquela dependência — nesse caso, marque apenas como Encontrado.</li>
+                <li>O bem não pode ter sido marcado como Encontrado ou Novo em outra dependência, para não gerar conflito.</li>
+              </ul>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>3. Consistir inventário</summary>
+          <div class="acc-body">
+            <p>Acesse Inventário por Contagem → Consistir Inventário para visualizar os <strong>tombos inconsistentes</strong>: os não encontrados, não procurados ou novos. Essa opção só fica disponível enquanto houver um inventário em andamento.</p>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>4. Fechamento de inventário</summary>
+          <div class="acc-body">
+            <p>É o processo final, executado depois da verificação de todos os tombos.</p>
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-green">1</div><div class="step-body"><p>Inventário por Contagem → Fechamento de Inventário.</p></div></div>
+              <div class="step"><div class="step-num c-bg-green">2</div><div class="step-body">
+                <p>Decida se o sistema deve incorporar os tombos <strong>Novos</strong> encontrados na unidade. Se marcar Sim, eles são transferidos para a nova sala daquela unidade.</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-green">3</div><div class="step-body">
+                <p>Clique em <strong>Executar Fechamento</strong>. Se houver unidades não contadas ou com contagem parcial, o sistema pergunta se deseja continuar mesmo assim.</p>
+              </div></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>5. Relatório de inventário</summary>
+          <div class="acc-body">
+            <p>Só é possível imprimir inventários <strong>fechados</strong> (o que está em andamento só é impresso pela opção Contagem dos Tombos). Acesse Inventário por Contagem → Relatório de Inventários e selecione, entre os já realizados, aquele que deseja imprimir.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 08 VIRADA DE ANO -->
+      <section class="chapter" id="virada">
+        <div class="chapter-head">
+          <div class="chapter-num c-bg-yellow">08</div>
+          <div>
+            <h2>Virada de ano</h2>
+            <p class="chapter-sub">Encerrando um exercício e liberando o próximo — a última etapa do ciclo patrimonial.</p>
+          </div>
+        </div>
+
+        <div class="callout importante">
+          <span class="icon">i</span>
+          <div><strong>Não confunda os dois inventários</strong>O <strong>Inventário de Almoxarifado</strong> controla entradas e saídas do almoxarifado; o <strong>Inventário por Contagem</strong> controla o patrimônio do órgão/entidade. A virada de ano exige o primeiro — sem ele, o AJURI bloqueia automaticamente a movimentação.</div>
+        </div>
+
+        <details class="acc" open>
+          <summary>Parte 1 · Inventário do almoxarifado de patrimônio</summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>No módulo Estoque, confirme que o almoxarifado selecionado é o de Patrimônio.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Movimentos → Inventário → Relatório para Inventário.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Clique em <strong>Visualizar</strong> e confirme o bloqueio do almoxarifado na mensagem, clicando em <strong>OK</strong>. O almoxarifado fica bloqueado até o término do inventário.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body"><p>Movimentos → Inventário → Entrada de Dados no Inventário, e clique em <strong>OK</strong>.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body">
+                <p>Preencha obrigatoriamente <span class="field">Material</span>, <span class="field">Quantidade</span> e <span class="field">Justificativa</span> (pode registrar “virada de ano”; material pode ser qualquer item do estoque e a quantidade pode ficar zerada).</p>
+              </div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">6</div><div class="step-body"><p>Clique em <strong>Adicionar Itens</strong> e depois em <strong>Concluir</strong>, no canto superior direito.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">7</div><div class="step-body"><p>Volte a Movimentos → Inventário → Atualização de Estoque, e clique em <strong>OK</strong>.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">8</div><div class="step-body"><p>O almoxarifado é liberado novamente — agora já é possível fazer a virada de ano.</p></div></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="acc">
+          <summary>Parte 2 · A virada de ano</summary>
+          <div class="acc-body">
+            <div class="steps">
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">1</div><div class="step-body"><p>No módulo Estoque, acesse Movimentos → Virada de Ano.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">2</div><div class="step-body"><p>Clique em <strong>OK</strong>.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">3</div><div class="step-body"><p>Leia com atenção o alerta: depois desta operação não será mais possível fazer lançamentos do exercício anterior. Clique em <strong>Sim</strong> para continuar.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">4</div><div class="step-body"><p>Confira o almoxarifado, o ano atual e o novo ano exibidos na tela.</p></div></div>
+              <div class="step"><div class="step-num c-bg-yellow" style="color:var(--blue-deep)">5</div><div class="step-body"><p>Clique em <strong>OK</strong> para concluir.</p></div></div>
+            </div>
+            <div class="callout atencao">
+              <span class="icon">!</span>
+              <div><strong>Atenção</strong>A virada de ano deve ser realizada logo após o inventário de almoxarifado — de preferência, no mesmo dia.</div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+    </div>
+
+    <footer class="site">
+      <div class="col">
+        <h4>SEAD · Secretaria de Administração e Gestão</h4>
+        Av. Constelação, 30 — Conjunto Morada do Sol, Aleixo, Manaus/AM<br>
+        Tel.: (92) 3182-2800 e (92) 3182-2869<br>
+        <a href="mailto:dbm.patrimonio@sead.am.gov.br">dbm.patrimonio@sead.am.gov.br</a>
+      </div>
+      <div class="col">
+        <h4>Sobre esta cartilha</h4>
+        Cartilha do Sistema Eletrônico de Controle Patrimonial — AJURI Patrimônio, 1ª edição, maio de 2024. Elaboração: Coordenadoria de Patrimônio/SEAD. Versão interativa para consulta rápida dos procedimentos oficiais.
+      </div>
+    </footer>
+  </main>
+</div>
+
+<button class="back-top" id="backTop" aria-label="Voltar ao topo">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+  // Scroll progress bar
+  const progressEl = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const height = h.scrollHeight - h.clientHeight;
+    progressEl.style.width = (height > 0 ? (scrolled/height)*100 : 0) + '%';
+    document.getElementById('backTop').classList.toggle('show', scrolled > 500);
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  // Back to top
+  document.getElementById('backTop').addEventListener('click', ()=>{
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  // Mobile menu
+  const sidebar = document.getElementById('sidebar');
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  function setSidebar(open){
+    sidebar.classList.toggle('open', open);
+    sidebarOverlay.classList.toggle('show', open);
+  }
+  menuToggle.addEventListener('click', ()=> setSidebar(!sidebar.classList.contains('open')));
+  sidebarOverlay.addEventListener('click', ()=> setSidebar(false));
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') setSidebar(false); });
+  document.querySelectorAll('nav.toc a').forEach(a=>{
+    a.addEventListener('click', ()=> setSidebar(false));
+  });
+
+  // Scrollspy
+  const sections = document.querySelectorAll('section.chapter');
+  const navLinks = document.querySelectorAll('nav.toc a');
+  const spy = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const id = entry.target.id;
+        navLinks.forEach(l=>{
+          l.classList.toggle('active', l.getAttribute('href') === '#'+id);
+        });
+      }
+    });
+  }, {rootMargin:'-15% 0px -70% 0px', threshold:0});
+  sections.forEach(s=> spy.observe(s));
+
+  // Sidebar filter
+  const filterInput = document.getElementById('filterInput');
+  filterInput.addEventListener('input', ()=>{
+    const q = filterInput.value.trim().toLowerCase();
+    navLinks.forEach(l=>{
+      const text = l.textContent.toLowerCase();
+      l.style.display = text.includes(q) ? 'flex' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
