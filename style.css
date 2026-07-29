@@ -574,11 +574,15 @@ section.chapter:last-of-type {
 
 .step-shot {
     display: block;
-    max-width: 500px;
     height: auto;
     margin: 12px 0 4px;
     border: 2px solid var(--blue);
     border-radius: 8px;
+    box-shadow: var(--shadow);
+    
+    border: 1px solid var(--line);
+
+
     box-shadow: var(--shadow);
 }
 
