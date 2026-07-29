@@ -577,8 +577,8 @@ section.chapter:last-of-type {
     height: auto;
     width: auto;
     margin: 12px 0 4px;
-    border:2px solid;
-    color-scheme: var(--blue);
+    border:1px solid;
+    color-scheme: var(--blue-deep);
     border-radius: 5px;
     box-shadow: var(--shadow);
     max-width: 100%;
