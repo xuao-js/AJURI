@@ -575,16 +575,14 @@ section.chapter:last-of-type {
 .step-shot {
     display: block;
     height: auto;
+    width: auto;
     margin: 12px 0 4px;
     border: 2px solid var(--blue);
-    border-radius: 8px;
+    border-radius: 5px;
     box-shadow: var(--shadow);
-    
-    border: 1px solid var(--line);
-
-
-    box-shadow: var(--shadow);
+    max-width: 100%;
 }
+
 
 /* accordions (details) for Desfazimento subtopics */
 details.acc {
