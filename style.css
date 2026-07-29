@@ -584,7 +584,6 @@ section.chapter:last-of-type {
     max-width: 100%;
 }
 
-
 /* accordions (details) for Desfazimento subtopics */
 details.acc {
     background: var(--paper-alt);
