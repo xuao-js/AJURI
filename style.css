@@ -580,7 +580,7 @@ section.chapter:last-of-type {
     border: 2px solid var(--blue);
     border-radius: 5px;
     box-shadow: var(--shadow);
-    max-width: 100%;
+
 }
 
 
